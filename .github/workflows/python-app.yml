@@ -5,34 +5,38 @@ name: Python application
 
 on:
   push:
-    branches: [ master ]
+    paths:
+      - '.github/workflows/python-app.yml'
+      - 'bilix/**'
+      - 'pyproject.toml'
+    branches: [ "master" ]
   pull_request:
-    branches: [ master ]
+    paths:
+      - '.github/workflows/python-app.yml'
+      - 'bilix/**'
+      - 'pyproject.toml'
+    branches: [ "master" ]
 
 permissions:
   contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    strategy:
+      # You can use PyPy versions in python-version.
+      # For example, pypy-2.7 and pypy-3.8
+      matrix:
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.9"
-    - name: Install python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Intall ffmpeg
-      run: |
-        sudo apt-get update
-        sudo apt-get install ffmpeg
-    - name: Test bili_cmd.py
-      run: |
-        python bili_cmd.py get_series 'https://www.bilibili.com/video/BV1sa411b786'
-        python bili_cmd.py get_up '2989565' -num 1
-        python bili_cmd.py get_cate 宅舞 -num 1
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -e .
